@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reddit Clone</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        #header {
+            background-color: #FF4500;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        .post {
+            background-color: white;
+            border-radius: 5px;
+            margin: 15px 0;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .vote-buttons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .comments {
+            margin-top: 10px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        #post-form {
+            background-color: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>Reddit Clone</h1>
+    </div>
+
+    <div id="post-form">
+        <input type="text" id="title-input" placeholder="Post Title">
+        <textarea id="content-input" placeholder="Post Content"></textarea>
+        <button onclick="createPost()">Submit Post</button>
+    </div>
+
+    <div id="posts-container"></div>
+
+    <script>
+        class Post {
+            constructor(title, content) {
+                this.id = Date.now();
+                this.title = title;
+                this.content = content;
+                this.votes = 0;
+                this.comments = [];
+            }
+
+            upvote() {
+                this.votes++;
+                this.render();
+            }
+
+            downvote() {
+                this.votes--;
+                this.render();
+            }
+
+            addComment(comment) {
+                this.comments.push(comment);
+                this.render();
+            }
+
+            render() {
+                const postElement = document.getElementById(`post-${this.id}`);
+                if (postElement) {
+                    postElement.querySelector('.vote-count').textContent = this.votes;
+                    
+                    const commentsContainer = postElement.querySelector('.comments');
+                    commentsContainer.innerHTML = this.comments.map(
+                        comment => `<div class="comment">${comment}</div>`
+                    ).join('');
+                }
+            }
+        }
+
+        class RedditClone {
+            constructor() {
+                this.posts = [];
+            }
+
+            createPost(title, content) {
+                const newPost = new Post(title, content);
+                this.posts.push(newPost);
+                this.renderPosts();
+            }
+
+            renderPosts() {
+                const container = document.getElementById('posts-container');
+                container.innerHTML = this.posts.map(post => `
+                    <div class="post" id="post-${post.id}">
+                        <div class="post-header">
+                            <h2>${post.title}</h2>
+                            <div class="vote-buttons">
+                                <button onclick="app.upvotePost(${post.id})">👍</button>
+                                <span class="vote-count">${post.votes}</span>
+                                <button onclick="app.downvotePost(${post.id})">👎</button>
+                            </div>
+                        </div>
+                        <p>${post.content}</p>
+                        <div class="comments-input">
+                            <input type="text" id="comment-input-${post.id}" placeholder="Add a comment">
+                            <button onclick="app.addComment(${post.id})">Comment</button>
+                        </div>
+                        <div class="comments"></div>
+                    </div>
+                `).join('');
+            }
+
+            upvotePost(postId) {
+                const post = this.posts.find(p => p.id === postId);
+                post.upvote();
+            }
+
+            downvotePost(postId) {
+                const post = this.posts.find(p => p.id === postId);
+                post.downvote();
+            }
+
+            addComment(postId) {
+                const commentInput = document.getElementById(`comment-input-${postId}`);
+                const comment = commentInput.value;
+                
+                if (comment.trim()) {
+                    const post = this.posts.find(p => p.id === postId);
+                    post.addComment(comment);
+                    commentInput.value = '';
+                }
+            }
+        }
+
+        const app = new RedditClone();
+
+        function createPost() {
+            const titleInput = document.getElementById('title-input');
+            const contentInput = document.getElementById('content-input');
+            
+            if (titleInput.value.trim() && contentInput.value.trim()) {
+                app.createPost(titleInput.value, contentInput.value);
+                titleInput.value = '';
+                contentInput.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
